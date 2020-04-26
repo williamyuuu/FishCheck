@@ -130,13 +130,11 @@ dmypy.json
 
 # Mac ignore
 .DS_Store
-
-# Idea
 .idea
 
 # Project related ignores
 fishing.py
 keys.txt
 OWMlogins.txt
-tester.*
+tester*
 *.notes
