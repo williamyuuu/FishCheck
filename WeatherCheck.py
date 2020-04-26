@@ -5,7 +5,7 @@ from KeyManager import KeyManager
 
 class WeatherCheck:
 
-    api_key = KeyManager().get_key()
+    api_key = KeyManager().get_key_rotate()
     URL = "http://api.openweathermap.org/data/2.5/"
     units = "imperial"               # Fahrenheit = imperial / Celcius = metric / Default: Kelvins
 
@@ -17,7 +17,6 @@ class WeatherCheck:
 
     def __get_json(self, check_type):
         self.check_type = check_type
-        self.api_key = KeyManager().get_next_key()
         response = requests.get(f"{self.URL}{self.check_type}?lat={self.lat}&lon={self.lon}&units={self.units}"
                                 f"&cnt={self.amount}&appid={self.api_key}")
         return response.json()
@@ -26,6 +25,11 @@ class WeatherCheck:
         # %I instead of %H for 12hrs, %p for AM/PM, converts from epoch to local
         output = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %I:%M %p')
         return output
+
+
+    #To set your own key or premium key. To bypass the use of KeyManager
+    def set_api_key(self, key):
+        self.api_key = key
 
     def set_display_amount(self, num):
         self.amount = num

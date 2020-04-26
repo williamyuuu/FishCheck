@@ -3,6 +3,7 @@ import random
 
 class KeyManager:
 
+    #KeyManager is set to use dafault keys.txt file for keys
     def __init__(self, keys_file = "keys"):
         self.keys_file = keys_file
 
@@ -59,5 +60,13 @@ class KeyManager:
     def get_next_key(self):
         self.rotate_key()
         return self.get_key()
+
+    #grab top key then rotate
+    def get_key_rotate(self):
+        key = self.get_key()
+        self.rotate_key()
+        return key
+
+
 
 
