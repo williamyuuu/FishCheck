@@ -1,7 +1,7 @@
 import requests
 import datetime
 from KeyManager import KeyManager
-#yooooo
+#yo
 
 class WeatherCheck:
 
