@@ -31,9 +31,9 @@ class WeatherCheck:
         self.api_key = key
 
     def set_display_amount(self, num):
-        self.amount = num
+        self.amount = str(num)
 
-    def set_units(self, units = "imperial"):
+    def set_units(self, units):
         self.units = units
 
     # check current weather,temp,location, pressure, wind speed for Half Moon Bay
@@ -45,10 +45,16 @@ class WeatherCheck:
         temp = data["main"]["temp"]
         pressure = data["main"]["pressure"]
         windSpeed = data["wind"]["speed"]
-        print(f"Condition for {location.upper()}:\n|-"
-              f"Weather: {weather.upper()} \n|-"
-              f"Temperature: {temp} F°\n|-"
-              f"Wind Speed: {windSpeed} mph\n")
+        print("============================")
+        print(f"{location.upper():^28}")
+        print("============================")
+        print(f"Weather: {weather.upper()} \n"
+              f"Temperature: {temp} F°\n"
+              f"Wind Speed: {windSpeed} mph")
+        sunrise = data["sys"]["sunrise"]
+        sunset = data["sys"]["sunset"]
+        print(f"Sunrise: {self._get_datetime(sunrise):>22}")
+        print(f"Sunset:  {self._get_datetime(sunset):>22}")
         print(f"{self.URL}weather?lat={self.lat}&lon={self.lon}&units={self.units}&appid={self.api_key}")
 
     # check forecast for Half Moon Bay
@@ -60,7 +66,7 @@ class WeatherCheck:
         count = 0
 
         print("============================")
-        print(f"    {location.upper()}")
+        print(f"{location.upper():^28}")
         print("============================")
 
         for item in data["list"]:
