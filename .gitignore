@@ -133,7 +133,7 @@ dmypy.json
 .idea
 
 # Project related ignores
-fishCheck.py #main
+fishCheck.py
 fishing.py
 keys.txt
 OWMlogins.txt
