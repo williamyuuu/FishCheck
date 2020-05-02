@@ -1,0 +1,13 @@
+        FishCheck Change Log
+        ===================
+       
+Version 1.0.1 -- May 01, 2020
+------------------------------
+- Chg: set_units doesn't need a default
+- Chg: set_display_amount now allows for int or string params
+- Ehn: added sunrise/sunset to current weather
+- Enh: Location name formatting
+       
+Version 1.0.0 -- April 23, 2020
+-------------------------------
+Initial release
