@@ -25,6 +25,22 @@ class WeatherCheck:
                                 f"&cnt={self.amount}&appid={self.api_key}")
         return response.json()
 
+    def __error_check(self, data):
+        if (str(data["cod"])[0:1] == "4"):
+            f = open("ERROR_LOG.log", "a+")
+            f.write(f'{datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")}\n'
+                    f'ak={self.api_key} '
+                    f'la={self.lat} '
+                    f'lo={self.lon} '
+                    f'ci={self.city} '
+                    f's={self.state} '
+                    f'z={self.zip} '
+                    f'co={self.country}\n'
+                    f'{data["cod"]} {data["message"]}\n\n')
+            f.close()
+            quit()
+
+
     def _get_datetime(self, time):
         # %I instead of %H for 12hrs, %p for AM/PM, converts from epoch to local
         output = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %I:%M %p')
@@ -56,7 +72,7 @@ class WeatherCheck:
     # check current weather,temp,location, pressure, wind speed for Half Moon Bay
     def checkWeather(self):
         data = self.__get_json("weather")
-
+        self.__error_check(data)
         location = data["name"]
         weather = data["weather"][0]["main"]
         temp = data["main"]["temp"]
@@ -82,7 +98,7 @@ class WeatherCheck:
     # check forecast for Half Moon Bay
     def checkForecast(self):
         data = self.__get_json("forecast")
-
+        self.__error_check(data)
         location = data["city"]["name"]
 
         count = 0
