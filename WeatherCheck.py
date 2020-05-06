@@ -10,8 +10,8 @@ class WeatherCheck:
 
     amount = "8"        # Number of forecasts (by 3 hours)
 
-    def __init__(self, lat="37.4435478", lon="-122.4729689", city= None, state= None, zip= None, country="US"): #Half Moon Bay
-
+    #Default lat/lon is Half Moon Bay
+    def __init__(self, lat="37.4435478", lon="-122.4729689", city = "de_City", state = "de_State", zip = "de_Zip", country="US"):
         self.lat = str(lat) # ±90
         self.lon = str(lon) # ±180
         self.city = str(city)
@@ -19,13 +19,28 @@ class WeatherCheck:
         self.zip = str(zip) # format check positive num
         self.country = str(country) # defaults to US
 
+    #private class to get json
     def __get_json(self, check_type):
         self.check_type = check_type
-        response = requests.get(f"{self.URL}{self.check_type}?lat={self.lat}&lon={self.lon}&units={self.units}"
-                                f"&cnt={self.amount}&appid={self.api_key}")
-        return response.json()
+        website = (f"{self.URL}{self.check_type}?")
+
+        #if not default, prioritizes a call with zip, leads with 0 if less than 5 digits
+        if(self.zip != "de_Zip"):
+            link = (f"{website}&units={self.units}&cnt={self.amount}&zip={self.zip:0>5},{self.country}&appid={self.api_key}")
+        # if not default, calls with city
+        elif(self.city != "de_City"):
+            #replaces spaces in city names with %20
+            self.city = self.city.replace(" ", "%20")
+            link = (f"{website}&units={self.units}&cnt={self.amount}&q={self.city},{self.state}&appid={self.api_key}")
+        # using coords or default lon/lat
+        else:
+            link = (f"{website}&lat={self.lat}&lon={self.lon}&units={self.units}&cnt={self.amount}&appid={self.api_key}")
+
+        response = requests.get(link)
+        return response.json(), link
 
     def __error_check(self, data):
+        #catches error codes leading with 4 and writes to ERROR_LOG.log
         if (str(data["cod"])[0:1] == "4"):
             f = open("ERROR_LOG.log", "a+")
             f.write(f'{datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")}\n'
@@ -69,9 +84,9 @@ class WeatherCheck:
     def set_units(self, units):
         self.units = units
 
-    # check current weather,temp,location, pressure, wind speed for Half Moon Bay
+    # prints current weather, location name/weather/temp/wind/pressure/pressure quality
     def checkWeather(self):
-        data = self.__get_json("weather")
+        data, link = self.__get_json("weather")
         self.__error_check(data)
         location = data["name"]
         weather = data["weather"][0]["main"]
@@ -90,14 +105,11 @@ class WeatherCheck:
         sunset = data["sys"]["sunset"]
         print(f"Sunrise: {self._get_datetime(sunrise):>22}")
         print(f"Sunset:  {self._get_datetime(sunset):>22}")
-        print(f"{self.URL}weather?lat={self.lat}&lon={self.lon}&units={self.units}&appid={self.api_key}")
-        # print(self.zip)
-        # print(self.city)
-        # print(self.state)
+        print(link)
 
-    # check forecast for Half Moon Bay
+    # prints forecast, location name/date time/temp/wind/weather/pressure/pressure quality
     def checkForecast(self):
-        data = self.__get_json("forecast")
+        data, link = self.__get_json("forecast")
         self.__error_check(data)
         location = data["city"]["name"]
 
@@ -126,5 +138,5 @@ class WeatherCheck:
         sunset = data["city"]["sunset"]
         print(f"Sunrise: {self._get_datetime(sunrise):>22}")
         print(f"Sunset:  {self._get_datetime(sunset):>22}")
-        print(f"{self.URL}forecast?lat={self.lat}&lon={self.lon}&units={self.units}&cnt={self.amount}&appid={self.api_key}")
+        print(link)
 

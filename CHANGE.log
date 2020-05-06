@@ -6,6 +6,7 @@ Version 1.0.2 -- May 05, 2020
 - Enh: Pressure in inMg and pressure quality check
 - Enh: Formatting changes to enhance viewing experience
 - NEW: Error Code checking and write to ERROR_LOG.log
+- NEW: New parameters to get location
 
 Version 1.0.1 -- May 01, 2020
 ------------------------------
