@@ -12,8 +12,16 @@ class WeatherCheck:
 
     #Default lat/lon is Half Moon Bay
     def __init__(self, lat="37.4435478", lon="-122.4729689", city = "de_City", state = "de_State", zip = "de_Zip", country="US"):
-        self.lat = str(lat) # ±90
-        self.lon = str(lon) # ±180
+
+        # if either value passes coordinate boundaries, resets to default
+        if int(lat) < -90 or int(lat) > 90 or int(lon) < -180 or int(lon) > 180:
+            print("Cgioordinates out of range, default to Half Moon Bay")
+            self.lat = "37.4435478"
+            self.lon = "-122.4729689"
+        else:
+            self.lat = str(lat) # ±90
+            self.lon = str(lon) # ±180
+
         self.city = str(city)
         self.state = str(state)
         self.zip = str(zip) # format check positive num
@@ -53,6 +61,7 @@ class WeatherCheck:
                     f'co={self.country}\n'
                     f'{data["cod"]} {data["message"]}\n\n')
             f.close()
+            print(f'ERROR: {data["cod"]}\n{data["message"]}')
             quit()
 
 
