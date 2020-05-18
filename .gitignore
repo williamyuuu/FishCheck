@@ -135,7 +135,7 @@ dmypy.json
 # Project related ignores
 fishCheck.py
 fishing.py
-keys.txt
-OWMlogins.txt
+*_keys.txt
+*logins.txt
 tester*
 *.notes

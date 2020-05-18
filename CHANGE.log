@@ -1,6 +1,10 @@
         FishCheck Change Log
         ===================
 
+Version 1.0.3
+------------------------------
+- Enh: Catches out of range coordinates
+
 Version 1.0.2 -- May 05, 2020
 ------------------------------
 - Enh: Pressure in inMg and pressure quality check

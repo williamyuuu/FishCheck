@@ -1,10 +1,12 @@
 import requests
 import datetime
+import arrow
 from KeyManager import KeyManager
 
 class WeatherCheck:
 
-    api_key = KeyManager().get_key_rotate()
+    api_key = KeyManager("wc_keys").get_key_rotate()
+    sg_key = KeyManager("sg_keys").get_key()
     URL = "http://api.openweathermap.org/data/2.5/"
     units = "imperial"               # Fahrenheit = imperial / Celcius = metric / Default: Kelvins
 
@@ -12,8 +14,16 @@ class WeatherCheck:
 
     #Default lat/lon is Half Moon Bay
     def __init__(self, lat="37.4435478", lon="-122.4729689", city = "de_City", state = "de_State", zip = "de_Zip", country="US"):
-        self.lat = str(lat) # ±90
-        self.lon = str(lon) # ±180
+
+        # if either value passes coordinate boundaries, resets to default
+        if float(lat) < -90 or float(lat) > 90 or float(lon) < -180 or float(lon) > 180:
+            print("Coordinates out of range, default to Half Moon Bay")
+            self.lat = "37.4435478"
+            self.lon = "-122.4729689"
+        else:
+            self.lat = str(lat) # ±90
+            self.lon = str(lon) # ±180
+
         self.city = str(city)
         self.state = str(state)
         self.zip = str(zip) # format check positive num
@@ -39,6 +49,43 @@ class WeatherCheck:
         response = requests.get(link)
         return response.json(), link
 
+    def get_tides(self):
+        # Get first hour of today
+        start = arrow.now().floor('hour')
+
+        # Get last hour of today
+        end = arrow.now().ceil('day')
+        response = requests.get(
+            'https://api.stormglass.io/v2/weather/point',
+            params={
+                'lat': 37.4435478,
+                'lng': -122.4729689,
+                'params': 'swellHeight,waveHeight',
+                # 'source': 'noaa,dwd',
+                'start': start.to('UTC').timestamp,  # Convert to UTC timestamp
+                'end': end.to('UTC').timestamp  # Convert to UTC timestamp
+            },
+            headers={
+                'Authorization': self.sg_key
+            }
+        )
+
+        # Do something with response data.
+        json_data = response.json()
+        #print(json_data)
+
+        print(f'{"DATE / TIME":^20}||{"NOAA SWELL/WAVE":^17}||{"SG SWELL/WAVE":^17}||')
+        for item in json_data["hours"]:
+            arrtime = arrow.get(item["time"])
+            time = arrtime.to("local").format("MM/DD/YYYY HH:mm A")
+            noaaSwell = item["swellHeight"]["noaa"]
+            sgSwell = item["swellHeight"]["sg"]
+            noaaWave = item["waveHeight"]["noaa"]
+            sgWave = item["waveHeight"]["sg"]
+
+            print(f"{time} ||  {noaaSwell:0<4}  |  {noaaWave:0<4}  ||  {sgSwell:0<4}  |  {sgWave:0<4}  ||")
+
+
     def __error_check(self, data):
         #catches error codes leading with 4 and writes to ERROR_LOG.log
         if (str(data["cod"])[0:1] == "4"):
@@ -53,6 +100,7 @@ class WeatherCheck:
                     f'co={self.country}\n'
                     f'{data["cod"]} {data["message"]}\n\n')
             f.close()
+            print(f'ERROR: {data["cod"]}\n{data["message"]}')
             quit()
 
 
@@ -123,6 +171,7 @@ class WeatherCheck:
         print("------------||---------------------||-----------||-----------||------------||-------||-----------")
         for item in data["list"]:
             weather = item["weather"][0]["main"]
+            #weather = item["weather"][0]["description"]
             temp = item["main"]["temp"]
             inMg = self._get_inMg(item["main"]["pressure"])
             windSpeed = item["wind"]["speed"]
