@@ -60,7 +60,7 @@ class WeatherCheck:
             params={
                 'lat': 37.4435478,
                 'lng': -122.4729689,
-                'params': 'swellHeight,waveHeight',
+                'params': 'swellHeight,swellPeriod',
                 # 'source': 'noaa,dwd',
                 'start': start.to('UTC').timestamp,  # Convert to UTC timestamp
                 'end': end.to('UTC').timestamp  # Convert to UTC timestamp
@@ -77,13 +77,14 @@ class WeatherCheck:
         print(f'{"DATE / TIME":^20}||{"NOAA SWELL/WAVE":^17}||{"SG SWELL/WAVE":^17}||')
         for item in json_data["hours"]:
             arrtime = arrow.get(item["time"])
-            time = arrtime.to("local").format("MM/DD/YYYY HH:mm A")
+            time = arrtime.to("local").format("MM/DD/YYYY hh:mm A")
             noaaSwell = item["swellHeight"]["noaa"]
-            sgSwell = item["swellHeight"]["sg"]
-            noaaWave = item["waveHeight"]["noaa"]
-            sgWave = item["waveHeight"]["sg"]
+            sgSwell = item["swellHeight"]["sg"]#*3.281
+            #noaaWave = item["waveHeight"]["noaa"]
+            #sgWave = item["waveHeight"]["sg"]
 
-            print(f"{time} ||  {noaaSwell:0<4}  |  {noaaWave:0<4}  ||  {sgSwell:0<4}  |  {sgWave:0<4}  ||")
+            #print(f"{time} ||  {noaaSwell:0<4}  |  {noaaWave:0<4}  ||  {sgSwell:0<4}  |  {sgWave:0<4}  ||")
+            print(f"{time} ||{noaaSwell:^17.2f}||{sgSwell:^17.2f}||")
 
 
     def __error_check(self, data):
