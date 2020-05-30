@@ -1,12 +1,10 @@
 import requests
 import datetime
-import arrow
 from KeyManager import KeyManager
 
 class WeatherCheck:
 
     api_key = KeyManager("wc_keys").get_key_rotate()
-    sg_key = KeyManager("sg_keys").get_key()
     URL = "http://api.openweathermap.org/data/2.5/"
     units = "imperial"               # Fahrenheit = imperial / Celcius = metric / Default: Kelvins
 
@@ -48,42 +46,6 @@ class WeatherCheck:
 
         response = requests.get(link)
         return response.json(), link
-
-    def get_tides(self):
-        # Get first hour of today
-        start = arrow.now().floor('hour')
-
-        # Get last hour of today
-        end = arrow.now().ceil('day')
-        response = requests.get(
-            'https://api.stormglass.io/v2/weather/point',
-            params={
-                'lat': 37.4435478,
-                'lng': -122.4729689,
-                'params': 'swellHeight,waveHeight',
-                # 'source': 'noaa,dwd',
-                'start': start.to('UTC').timestamp,  # Convert to UTC timestamp
-                'end': end.to('UTC').timestamp  # Convert to UTC timestamp
-            },
-            headers={
-                'Authorization': self.sg_key
-            }
-        )
-
-        # Do something with response data.
-        json_data = response.json()
-        #print(json_data)
-
-        print(f'{"DATE / TIME":^20}||{"NOAA SWELL/WAVE":^17}||{"SG SWELL/WAVE":^17}||')
-        for item in json_data["hours"]:
-            arrtime = arrow.get(item["time"])
-            time = arrtime.to("local").format("MM/DD/YYYY HH:mm A")
-            noaaSwell = item["swellHeight"]["noaa"]
-            sgSwell = item["swellHeight"]["sg"]
-            noaaWave = item["waveHeight"]["noaa"]
-            sgWave = item["waveHeight"]["sg"]
-
-            print(f"{time} ||  {noaaSwell:0<4}  |  {noaaWave:0<4}  ||  {sgSwell:0<4}  |  {sgWave:0<4}  ||")
 
 
     def __error_check(self, data):
