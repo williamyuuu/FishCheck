@@ -27,7 +27,8 @@ class WeatherCheck:
         self.zip = str(zip) # format check positive num
         self.country = str(country) # defaults to US
 
-    #private class to get json
+    # PRIVATE FUNCTIONS
+    # private class to get json : returns link and json file
     def __get_json(self, check_type):
         self.check_type = check_type
         website = (f"{self.URL}{self.check_type}?")
@@ -47,7 +48,7 @@ class WeatherCheck:
         response = requests.get(link)
         return response.json(), link
 
-
+    # checks error codes and writes into ERROR_LOG with details
     def __error_check(self, data):
         #catches error codes leading with 4 and writes to ERROR_LOG.log
         if (str(data["cod"])[0:1] == "4"):
@@ -65,15 +66,17 @@ class WeatherCheck:
             print(f'ERROR: {data["cod"]}\n{data["message"]}')
             quit()
 
-
+    # Converts EPOCH/UNIX time to Local Time
     def _get_datetime(self, time):
         # %I instead of %H for 12hrs, %p for AM/PM, converts from epoch to local
         output = datetime.datetime.fromtimestamp(time).strftime('%Y/%m/%d %I:%M %p')
         return output
 
+    # Converts hpa to inMg
     def _get_inMg(self, hpa):
          return hpa * 0.02953
 
+    # Water pressure range for quality of fishing
     def _get_inMg_quality(self, inMg):
         if 29.75 <= inMg <= 30.45:
             quality = "VERY GOOD"
@@ -84,16 +87,30 @@ class WeatherCheck:
 
         return quality
 
-    #To set your own key or premium key. To bypass the use of KeyManager
+    # SETTERS
+    # To set your own key or premium key. To bypass the use of KeyManager
     def set_api_key(self, key):
         self.api_key = key
 
+    # sets the amount to display into API call
     def set_display_amount(self, num):
         self.amount = str(num)
 
+    # sets the unity type to display into API call : imperial, metrics, Kelvins
     def set_units(self, units):
         self.units = units
 
+    # GETTERS
+    # def get_location():
+    # def get_weather():
+    # def get_temperature():
+    # def get_inMg():
+    # def get_wind_speed():
+    # def get_sunrise():
+    # def get_sunset():
+    # def get_link():
+
+    # PRINTERS
     # prints current weather, location name/weather/temp/wind/pressure/pressure quality
     def checkWeather(self):
         data, link = self.__get_json("weather")
