@@ -16,7 +16,7 @@ class SwellCheck:
         self.param = param
         self.__get_json()
 
-    # Private Functions
+    # PRIVATE FUNCTIONS
     def __get_json(self):
         # Get first hour of today
         start = arrow.now().ceil('hour')
@@ -41,6 +41,7 @@ class SwellCheck:
         self.json_data = response.json()
         return response.json()
 
+    # sets self.start next quarterly hour in UTC
     def __start_point(self):
         json_data = self.json_data
 
@@ -59,8 +60,20 @@ class SwellCheck:
         #Hour range is dynamic, according to the set amount, making sure the range is large enough
         self.hour_range = ((self.amount) * 3) + self.start
 
-    # returns array of swell periods by swell type given : returns in units of seconds
-    def get_swell_period(self, swell_type ="noaa", pattern = 3):
+    # GETTERS
+    # returns array of swell periods by swell type given : returns array meter/seconds
+    def get_swell_data(self, swell_type ="noaa", dataType ="swellHeight", pattern = 3):
+        json_data = self.json_data
+        self.__start_point()
+        value = []
+
+        for x in range(self.start, self.hour_range, int(pattern)):
+            value.append('{:.2f}'.format(json_data["hours"][x][dataType][swell_type]))
+
+        return value
+
+    # returns array of swell height by swell type given : returns array in units of ft
+    def get_swell_height(self, swell_type="noaa", pattern = 3):
         json_data = self.json_data
         self.__start_point()
         value = []
@@ -70,17 +83,18 @@ class SwellCheck:
 
         return value
 
-    #returns array of swell heights by swell type given : returns in units of feet
-    def get_swell_height(self, swell_type ="noaa", pattern = 3):
+    # returns array of swell periods by swell type given : returns array in units of seconds
+    def get_swell_period(self, swell_type="noaa", pattern = 3):
         json_data = self.json_data
         self.__start_point()
         value = []
 
         for x in range(self.start, self.hour_range, int(pattern)):
-            value.append('{:.2f}'.format(json_data["hours"][x]["swellPeriod"][swell_type]))
+            value.append('{:.2f}'.format(json_data["hours"][x]["swellPeriod"][swell_type] * 3.281))
 
         return value
 
+    # PRINTERS
     # prints swells in 3 hour intervals
     def print_swells(self):
         json_data = self.json_data
