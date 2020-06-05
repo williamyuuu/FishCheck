@@ -10,8 +10,9 @@ class WeatherCheck:
 
     amount = "8"        # Number of forecasts (by 3 hours)
 
-    #Default lat/lon is Half Moon Bay
-    def __init__(self, lat="37.4435478", lon="-122.4729689", city = "de_City", state = "de_State", zip = "de_Zip", country="US"):
+    # Default lat/lon is Half Moon Bay
+    # Requires check_type "weather" or "forecast"
+    def __init__(self, check_type, lat="37.4435478", lon="-122.4729689", city = "de_City", state = "de_State", zip = "de_Zip", country="US"):
 
         # if either value passes coordinate boundaries, resets to default
         if float(lat) < -90 or float(lat) > 90 or float(lon) < -180 or float(lon) > 180:
@@ -26,26 +27,28 @@ class WeatherCheck:
         self.state = str(state)
         self.zip = str(zip) # format check positive num
         self.country = str(country) # defaults to US
+        self.json_data, self.link = self.__get_json(check_type)
 
     # PRIVATE FUNCTIONS
     # private class to get json : returns link and json file
     def __get_json(self, check_type):
         self.check_type = check_type
-        website = (f"{self.URL}{self.check_type}?")
+        website = f"{self.URL}{self.check_type}?"
 
-        #if not default, prioritizes a call with zip, leads with 0 if less than 5 digits
-        if(self.zip != "de_Zip"):
-            link = (f"{website}&units={self.units}&cnt={self.amount}&zip={self.zip:0>5},{self.country}&appid={self.api_key}")
+        # if not default, prioritizes a call with zip, leads with 0 if less than 5 digits
+        if self.zip != "de_Zip":
+            link = f"{website}&units={self.units}&cnt={self.amount}&zip={self.zip:0>5},{self.country}&appid={self.api_key}"
         # if not default, calls with city
-        elif(self.city != "de_City"):
-            #replaces spaces in city names with %20
+        elif self.city != "de_City":
+            # replaces spaces in city names with %20
             self.city = self.city.replace(" ", "%20")
-            link = (f"{website}&units={self.units}&cnt={self.amount}&q={self.city},{self.state}&appid={self.api_key}")
+            link = f"{website}&units={self.units}&cnt={self.amount}&q={self.city},{self.state}&appid={self.api_key}"
         # using coords or default lon/lat
         else:
-            link = (f"{website}&lat={self.lat}&lon={self.lon}&units={self.units}&cnt={self.amount}&appid={self.api_key}")
+            link = f"{website}&lat={self.lat}&lon={self.lon}&units={self.units}&cnt={self.amount}&appid={self.api_key}"
 
         response = requests.get(link)
+        self.__error_check(response.json())
         return response.json(), link
 
     # checks error codes and writes into ERROR_LOG with details
@@ -74,7 +77,7 @@ class WeatherCheck:
 
     # Converts hpa to inMg
     def _get_inMg(self, hpa):
-         return hpa * 0.02953
+        return hpa * 0.02953
 
     # Water pressure range for quality of fishing
     def _get_inMg_quality(self, inMg):
@@ -101,20 +104,75 @@ class WeatherCheck:
         self.units = units
 
     # GETTERS
-    # def get_location():
-    # def get_weather():
-    # def get_temperature():
-    # def get_inMg():
-    # def get_wind_speed():
-    # def get_sunrise():
-    # def get_sunset():
-    # def get_link():
+    # get name of location / station : returns a string
+    def get_location(self):
+        if self.check_type == "weather":
+            return self.json_data["name"]
+        elif self.check_type == "forecast":
+            return self.json_data["city"]["name"]
+
+    # get weather condition : returns string or list of strings
+    def get_weather(self):
+        if self.check_type == "weather":
+            return self.json_data["weather"][0]["main"]
+        elif self.check_type == "forecast":
+            values = []
+            for item in self.json_data["list"]:
+                values.append(item["weather"][0]["main"])
+            return values
+
+    # get temperature depending on units provided earlier : returns 2float or list of 2floats
+    def get_temp(self):
+        if self.check_type == "weather":
+            return '{:.2f}'.format(self.json_data["main"]["temp"])
+        elif self.check_type == "forecast":
+            values = []
+            for item in self.json_data["list"]:
+                values.append('{:.2f}'.format(item["main"]["temp"]))
+            return values
+
+    # get pressure in units of inMg : returns 2float or list of 2floats
+    def get_inMg(self):
+        if self.check_type == "weather":
+            return '{:.2f}'.format(self._get_inMg(self.json_data["main"]["pressure"]))
+        elif self.check_type == "forecast":
+            values = []
+            for item in self.json_data["list"]:
+                values.append('{:.2f}'.format(self._get_inMg(item["main"]["pressure"])))
+            return values
+
+    # get wind speed in mph : returns 2float or list of 2floats
+    def get_wind_speed(self):
+        if self.check_type == "weather":
+            return '{:.2f}'.format(self.json_data["wind"]["speed"])
+        elif self.check_type == "forecast":
+            values = []
+            for item in self.json_data["list"]:
+                values.append('{:.2f}'.format(self._get_inMg(item["wind"]["speed"])))
+            return values
+
+    # get sunrise in local time AM/PM : returns a string
+    def get_sunrise(self):
+        if self.check_type == "weather":
+            return self._get_datetime(self.json_data["sys"]["sunrise"])
+        elif self.check_type == "forecast":
+            return self._get_datetime(self.json_data["city"]["sunrise"])
+
+    # get sunset in local time AM/PM : returns a string
+    def get_sunset(self):
+        if self.check_type == "weather":
+            return self._get_datetime(self.json_data["sys"]["sunset"])
+        elif self.check_type == "forecast":
+            return self._get_datetime(self.json_data["city"]["sunset"])
+
+    # get link of the API call : returns a string
+    def get_link(self):
+        return self.link
 
     # PRINTERS
     # prints current weather, location name/weather/temp/wind/pressure/pressure quality
     def checkWeather(self):
         data, link = self.__get_json("weather")
-        self.__error_check(data)
         location = data["name"]
         weather = data["weather"][0]["main"]
         temp = data["main"]["temp"]
@@ -137,7 +195,6 @@ class WeatherCheck:
     # prints forecast, location name/date time/temp/wind/weather/pressure/pressure quality
     def checkForecast(self):
         data, link = self.__get_json("forecast")
-        self.__error_check(data)
         location = data["city"]["name"]
 
         count = 0
@@ -150,7 +207,7 @@ class WeatherCheck:
         print("------------||---------------------||-----------||-----------||------------||-------||-----------")
         for item in data["list"]:
             weather = item["weather"][0]["main"]
-            #weather = item["weather"][0]["description"]
+            # weather = item["weather"][0]["description"]
             temp = item["main"]["temp"]
             inMg = self._get_inMg(item["main"]["pressure"])
             windSpeed = item["wind"]["speed"]
