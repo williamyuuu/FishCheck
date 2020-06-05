@@ -29,7 +29,7 @@ class WeatherCheck:
         self.country = str(country) # defaults to US
         self.json_data, self.link = self.__get_json(check_type)
 
-    # PRIVATE FUNCTIONS
+    # PRIVATE FUNCTIONS --------------------------
     # private class to get json : returns link and json file
     def __get_json(self, check_type):
         self.check_type = check_type
@@ -48,9 +48,11 @@ class WeatherCheck:
             link = f"{website}&lat={self.lat}&lon={self.lon}&units={self.units}&cnt={self.amount}&appid={self.api_key}"
 
         response = requests.get(link)
+
         self.__error_check(response.json())
         return response.json(), link
 
+    # PROTECTED FUNCTIONS --------------------------
     # checks error codes and writes into ERROR_LOG with details
     def __error_check(self, data):
         #catches error codes leading with 4 and writes to ERROR_LOG.log
@@ -90,7 +92,7 @@ class WeatherCheck:
 
         return quality
 
-    # SETTERS
+    # SETTERS --------------------------
     # To set your own key or premium key. To bypass the use of KeyManager
     def set_api_key(self, key):
         self.api_key = key
@@ -103,7 +105,11 @@ class WeatherCheck:
     def set_units(self, units):
         self.units = units
 
-    # GETTERS
+    # Soft setter fix, use this function after finish setting to recall API
+    def set_new_data(self):
+        self.json_data, self.link = self.__get_json(self.check_type)
+
+    # GETTERS --------------------------
     # get name of location / station : returns a string
     def get_location(self):
         if self.check_type == "weather":
@@ -169,7 +175,7 @@ class WeatherCheck:
     def get_link(self):
         return self.link
 
-    # PRINTERS
+    # PRINTERS --------------------------
     # prints current weather, location name/weather/temp/wind/pressure/pressure quality
     def checkWeather(self):
         data, link = self.__get_json("weather")
