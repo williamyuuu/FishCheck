@@ -1,10 +1,12 @@
         FishCheck Change Log
         ===================
 
-Version 1.0.3
+Version 1.0.3 -- June 16, 2020
 ------------------------------
+- Chg: APIs in their own classes
 - Enh: Catches out of range coordinates
-- Chg: Individual APIs in their own classes
+- NEW: Getters for individual data in SwellCheck
+- NEW: Getters for individual data in WeatherCheck
 
 Version 1.0.2 -- May 05, 2020
 ------------------------------
