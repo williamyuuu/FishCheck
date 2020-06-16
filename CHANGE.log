@@ -1,7 +1,7 @@
         FishCheck Change Log
         ===================
 
-Version 1.0.3
+Version 1.0.3 -- June 16, 2020
 ------------------------------
 - Chg: APIs in their own classes
 - Enh: Catches out of range coordinates

@@ -6,9 +6,9 @@ class WeatherCheck:
 
     api_key = KeyManager("wc_keys").get_key_rotate()
     URL = "http://api.openweathermap.org/data/2.5/"
-    units = "imperial"               # Fahrenheit = imperial / Celcius = metric / Default: Kelvins
-
-    amount = "8"        # Number of forecasts (by 3 hours)
+    units = "imperial"                  # Fahrenheit = imperial / Celcius = metric / Default: Kelvins
+    amount = "8"                        # Number of forecasts (by 3 hours)
+    status = 1                          # Indicates whether an updated json is available
 
     # Default lat/lon is Half Moon Bay
     # Requires check_type "weather" or "forecast"
@@ -23,16 +23,17 @@ class WeatherCheck:
             self.lat = str(lat) # ±90
             self.lon = str(lon) # ±180
 
+        self.check_type = check_type
         self.city = str(city)
         self.state = str(state)
-        self.zip = str(zip) # format check positive num
-        self.country = str(country) # defaults to US
-        self.json_data, self.link = self.__get_json(check_type)
+        self.zip = str(zip)             # format check positive num
+        self.country = str(country)     # defaults to US
+        # self.json_data, self.link = self.__get_json(check_type)
+        # take check_type into consideration for private functions
 
     # PRIVATE FUNCTIONS --------------------------
     # private class to get json : returns link and json file
-    def __get_json(self, check_type):
-        self.check_type = check_type
+    def __get_json(self):
         website = f"{self.URL}{self.check_type}?"
 
         # if not default, prioritizes a call with zip, leads with 0 if less than 5 digits
@@ -50,7 +51,19 @@ class WeatherCheck:
         response = requests.get(link)
 
         self.__error_check(response.json())
-        return response.json(), link
+        self.json_data = response.json()
+        self.link = link
+
+    # update status to identify a new json is available after setting new parameters -- for setter functions
+    def __set_status(self):
+        if self.status != 1:
+            self.status = 1
+
+    # checks to see if new json is available and then resets status after getting new json -- for getter functions
+    def __check_status(self):
+        if self.status == 1:
+            self.__get_json()
+            self.status = 0
 
     # PROTECTED FUNCTIONS --------------------------
     # checks error codes and writes into ERROR_LOG with details
@@ -96,22 +109,22 @@ class WeatherCheck:
     # To set your own key or premium key. To bypass the use of KeyManager
     def set_api_key(self, key):
         self.api_key = key
+        self.__set_status()
 
     # sets the amount to display into API call
     def set_display_amount(self, num):
         self.amount = str(num)
+        self.__set_status()
 
     # sets the unity type to display into API call : imperial, metrics, Kelvins
     def set_units(self, units):
         self.units = units
-
-    # Soft setter fix, use this function after finish setting to recall API
-    def set_new_data(self):
-        self.json_data, self.link = self.__get_json(self.check_type)
+        self.__set_status()
 
     # GETTERS --------------------------
     # get name of location / station : returns a string
     def get_location(self):
+        self.__check_status()
         if self.check_type == "weather":
             return self.json_data["name"]
         elif self.check_type == "forecast":
@@ -119,6 +132,7 @@ class WeatherCheck:
 
     # get weather condition : returns string or list of strings
     def get_weather(self):
+        self.__check_status()
         if self.check_type == "weather":
             return self.json_data["weather"][0]["main"]
         elif self.check_type == "forecast":
@@ -129,6 +143,7 @@ class WeatherCheck:
 
     # get temperature depending on units provided earlier : returns 2float or list of 2floats
     def get_temp(self):
+        self.__check_status()
         if self.check_type == "weather":
             return '{:.2f}'.format(self.json_data["main"]["temp"])
         elif self.check_type == "forecast":
@@ -139,6 +154,7 @@ class WeatherCheck:
 
     # get pressure in units of inMg : returns 2float or list of 2floats
     def get_inMg(self):
+        self.__check_status()
         if self.check_type == "weather":
             return '{:.2f}'.format(self._get_inMg(self.json_data["main"]["pressure"]))
         elif self.check_type == "forecast":
@@ -149,6 +165,7 @@ class WeatherCheck:
 
     # get wind speed in mph : returns 2float or list of 2floats
     def get_wind_speed(self):
+        self.__check_status()
         if self.check_type == "weather":
             return '{:.2f}'.format(self.json_data["wind"]["speed"])
         elif self.check_type == "forecast":
@@ -159,6 +176,7 @@ class WeatherCheck:
 
     # get sunrise in local time AM/PM : returns a string
     def get_sunrise(self):
+        self.__check_status()
         if self.check_type == "weather":
             return self._get_datetime(self.json_data["sys"]["sunrise"])
         elif self.check_type == "forecast":
@@ -166,6 +184,7 @@ class WeatherCheck:
 
     # get sunset in local time AM/PM : returns a string
     def get_sunset(self):
+        self.__check_status()
         if self.check_type == "weather":
             return self._get_datetime(self.json_data["sys"]["sunset"])
         elif self.check_type == "forecast":
@@ -173,12 +192,16 @@ class WeatherCheck:
 
     # get link of the API call : returns a string
     def get_link(self):
+        self.__check_status()
         return self.link
 
     # PRINTERS --------------------------
     # prints current weather, location name/weather/temp/wind/pressure/pressure quality
-    def checkWeather(self):
-        data, link = self.__get_json("weather")
+    def check_weather(self):
+        self.check_type = "weather"
+        self.__get_json()
+        data = self.json_data
+        link = self.link
         location = data["name"]
         weather = data["weather"][0]["main"]
         temp = data["main"]["temp"]
@@ -199,8 +222,11 @@ class WeatherCheck:
         print(link)
 
     # prints forecast, location name/date time/temp/wind/weather/pressure/pressure quality
-    def checkForecast(self):
-        data, link = self.__get_json("forecast")
+    def check_forecast(self):
+        self.check_type = "forecast"
+        self.__get_json()
+        data = self.json_data
+        link = self.link
         location = data["city"]["name"]
 
         count = 0

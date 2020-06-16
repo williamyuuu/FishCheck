@@ -9,12 +9,12 @@ class SwellCheck:
     amount = 8
     hour_range = 24
     start = 0
+    status = 1                          # Indicates whether an updated json is available
 
     def __init__(self, lat=37.4435478, lng=-122.4729689, param="swellHeight,swellPeriod"):
         self.lat = lat
         self.lng = lng
         self.param = param
-        self.__get_json()
 
     # PRIVATE FUNCTIONS
     def __get_json(self):
@@ -39,7 +39,6 @@ class SwellCheck:
             }
         )
         self.json_data = response.json()
-        return response.json()
 
     # sets self.start next quarterly hour in UTC
     def __start_point(self):
@@ -53,16 +52,29 @@ class SwellCheck:
                 start = item
                 self.start = start
 
+    # update status to identify a new json is available after setting new parameters -- for setter functions
+    def __set_status(self):
+        if self.status != 1:
+            self.status = 1
+
+    # checks to see if new json is available and then resets status after getting new json -- for getter functions
+    def __check_status(self):
+        if self.status == 1:
+            self.__get_json()
+            self.status = 0
+
     # SETTERS
     # Set the amount of data that will be given.
     def set_amount(self, amount):
         self.amount = amount
         #Hour range is dynamic, according to the set amount, making sure the range is large enough
         self.hour_range = ((self.amount) * 3) + self.start
+        self.__set_status()
 
     # GETTERS
     # returns array of swell periods by swell type given : returns array meter/seconds
     def get_swell_data(self, swell_type ="noaa", dataType ="swellHeight", pattern = 3):
+        self.__check_status()
         json_data = self.json_data
         self.__start_point()
         value = []
@@ -74,6 +86,7 @@ class SwellCheck:
 
     # returns array of swell height by swell type given : returns array in units of ft
     def get_swell_height(self, swell_type="noaa", pattern = 3):
+        self.__check_status()
         json_data = self.json_data
         self.__start_point()
         value = []
@@ -85,6 +98,7 @@ class SwellCheck:
 
     # returns array of swell periods by swell type given : returns array in units of seconds
     def get_swell_period(self, swell_type="noaa", pattern = 3):
+        self.__check_status()
         json_data = self.json_data
         self.__start_point()
         value = []
