@@ -190,6 +190,17 @@ class WeatherCheck:
         elif self.check_type == "forecast":
             return self._get_datetime(self.json_data["city"]["sunset"])
 
+    # get time in local time AM/PM : returns string or array of string
+    def get_time(self):
+        self.__check_status()
+        if self.check_type == "weather":
+            return self._get_datetime(self.json_data["dt"])
+        elif self.check_type == "forecast":
+            values = []
+            for item in self.json_data["list"]:
+                values.append(self._get_datetime(item["dt"]))
+            return values
+
     # get link of the API call : returns a string
     def get_link(self):
         self.__check_status()
