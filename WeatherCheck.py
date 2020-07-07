@@ -4,7 +4,7 @@ from KeyManager import KeyManager
 
 class WeatherCheck:
 
-    api_key = KeyManager("wc_keys").get_key_rotate()
+    api_key = KeyManager("keys/wc_keys").get_key_rotate()
     URL = "http://api.openweathermap.org/data/2.5/"
     units = "imperial"                  # Fahrenheit = imperial / Celcius = metric / Default: Kelvins
     amount = "8"                        # Number of forecasts (by 3 hours)
@@ -70,7 +70,7 @@ class WeatherCheck:
     def __error_check(self, data):
         #catches error codes leading with 4 and writes to ERROR_LOG.log
         if (str(data["cod"])[0:1] == "4"):
-            f = open("ERROR_LOG.log", "a+")
+            f = open("logs/ERROR_LOG.log", "a+")
             f.write(f'{datetime.datetime.now().strftime("%m-%d-%Y %H:%M:%S")}\n'
                     f'ak={self.api_key} '
                     f'la={self.lat} '
@@ -189,6 +189,17 @@ class WeatherCheck:
             return self._get_datetime(self.json_data["sys"]["sunset"])
         elif self.check_type == "forecast":
             return self._get_datetime(self.json_data["city"]["sunset"])
+
+    # get time in local time AM/PM : returns string or array of string
+    def get_time(self):
+        self.__check_status()
+        if self.check_type == "weather":
+            return self._get_datetime(self.json_data["dt"])
+        elif self.check_type == "forecast":
+            values = []
+            for item in self.json_data["list"]:
+                values.append(self._get_datetime(item["dt"]))
+            return values
 
     # get link of the API call : returns a string
     def get_link(self):

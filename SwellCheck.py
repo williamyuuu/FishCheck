@@ -5,7 +5,7 @@ from KeyManager import KeyManager
 
 class SwellCheck:
 
-    sg_key = KeyManager("sg_keys").get_key_rotate()
+    sg_key = KeyManager("keys/sg_keys").get_key_rotate()
     amount = 8
     hour_range = 24
     start = 0
@@ -108,9 +108,23 @@ class SwellCheck:
 
         return value
 
+    # returns array of time : returns array of times
+    def get_time(self, pattern = 3):
+        self.__check_status()
+        json_data = self.json_data
+        self.__start_point()
+        value = []
+
+        for x in range(self.start, self.hour_range, int(pattern)):
+            arrtime = arrow.get(json_data["hours"][x]["time"])
+            time = arrtime.to("local").format("MM/DD/YYYY hh:mm A")
+            value.append(time)
+        return value
+
     # PRINTERS
     # prints swells in 3 hour intervals
     def print_swells(self):
+        self.__check_status()
         json_data = self.json_data
         self.__start_point()
         print(f'{"DATE / TIME":^20}||{"NOAA SWELL":^19}||{"SG SWELL":^19}||')
@@ -128,6 +142,7 @@ class SwellCheck:
 
     # prints swells in hourly intervals
     def print_hourly_swells(self):
+        self.__check_status()
         json_data = self.json_data
         print(f'{"DATE / TIME":^20}||{"NOAA SWELL":^18}||{"SG SWELL":^20}||')
         for item in json_data["hours"]:
