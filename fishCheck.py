@@ -21,22 +21,15 @@ def print_conditions():
         print(height[x],"ft @",period[x],"s")
 
 def test():
-    wc = WeatherCheck("forecast")
-    wc.set_display_amount(8)
-    print(wc.get_wind_speed())
-    print(wc.get_location())
-    wc.set_units("metrics")
-    print(wc.get_wind_speed())
-    wc.set_units("imperial")
-    print(wc.get_wind_speed())
+    sc = SwellCheck()
+    print(sc.get_time())
 
 def broken_key():
     wc = WeatherCheck("forecast")
     wc.set_api_key("randomapitkeythatwontwork")
-    wc.set_new_data()
     print(wc.get_link())
 
 if __name__ == "__main__":
     # print_conditions()
-    test()
-    # broken_key()
+    # test()
+    broken_key()
